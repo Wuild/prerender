@@ -2,7 +2,9 @@ import Prerenderer from "puppeteer-prerender";
 import {Cache} from "file-system-cache";
 import express from "express";
 import https from "https";
+import http from "http";
 import fs from "node:fs";
+import configDotenv from "dotenv";
 
 const app = express();
 
@@ -13,18 +15,53 @@ const cache = new Cache({
     ttl: process.env.CACHE_TTL || 3600               // (optional) A time-to-live (in secs) on how long an item remains cached.
 });
 
-import configDotenv from "dotenv";
-
 configDotenv.config()
 
+/**
+ * The HTTP_PORT variable represents the port number for the HTTP server.
+ * It is used to determine the port the server will listen on.
+ *
+ * If the environment variable HTTP_PORT is defined, the value will be used;
+ * otherwise, the default value of 3000 will be used.
+ *
+ * @type {number}
+ * @example
+ * // Usage:
+ * const port = HTTP_PORT;
+ * console.log(port); // Output: 3000 (if HTTP_PORT is undefined in the environment)
+ * console.log(port); // Output: 8080 (if HTTP_PORT is defined in the environment as 8080)
+ */
 const HTTP_PORT = process.env.HTTP_PORT || 3000;
+
+/**
+ * Represents the SSL certificate value.
+ *
+ * @type {string}
+ */
 const SSL_CERT = process.env.SSL_CERT;
+
+/**
+ * @description Represents the SSL key used for secure connections.
+ * @type {string}
+ */
 const SSL_KEY = process.env.SSL_KEY;
 
+/**
+ * Logs messages with timestamps to the console.
+ * @function
+ * @param {...any} arguments - The messages to be logged.
+ */
 const log = function () {
     console.log.apply(console.log, [new Date().toISOString()].concat(Array.prototype.slice.call(arguments, 0)));
 };
 
+/**
+ * Fetches the content of a web page from a given URL using Prerenderer and caches the result.
+ *
+ * @param {string} url - The URL of the web page to fetch.
+ * @returns {Promise<{html: string, status: number}|{html: string, status}|boolean>} - A promise that resolves to an object containing the fetched HTML and status code, or a boolean
+ * value indicating whether the fetching was successful or not.
+ */
 async function fetchPage(url) {
     const prerender = new Prerenderer()
 
@@ -65,12 +102,18 @@ async function fetchPage(url) {
         }
     })
 
-    const privateKey = fs.readFileSync(SSL_KEY);
-    const certificate = fs.readFileSync(SSL_CERT);
+    if (SSL_KEY) {
+        const privateKey = fs.readFileSync(SSL_KEY);
+        const certificate = fs.readFileSync(SSL_CERT);
 
-    https.createServer({
-        key: privateKey, cert: certificate
-    }, app).listen(HTTP_PORT, () => {
-        console.log(`Example app listening on port ${HTTP_PORT}`)
-    });
+        https.createServer({
+            key: privateKey, cert: certificate
+        }, app).listen(HTTP_PORT, () => {
+            console.log(`HTTPS app listening on port ${HTTP_PORT}`)
+        });
+    } else {
+        http.createServer(app).listen(HTTP_PORT, () => {
+            console.log(`HTTP app listening on port ${HTTP_PORT}`)
+        });
+    }
 })();
