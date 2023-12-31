@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteMappingsManager">
+    <list>
+      <list>
+        <remote-mappings server-id="NodeJS@sshConfig://wuild@192.168.0.87:22 password" />
+      </list>
+    </list>
+  </component>
+</project>
