@@ -64,7 +64,7 @@ const log = function () {
  */
 async function fetchPage(url) {
     const prerender = new Prerenderer({
-        debug: true,
+        debug: process.env.DEBUG,
         timeout: 10000,
         puppeteerLaunchOptions: {
             args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -93,6 +93,10 @@ async function fetchPage(url) {
     app.get(/\/(.*)$/, async (req, res) => {
         let startDate = new Date();
         let url = req.params[0];
+        url = new URL(url)
+        url.hash = ''
+        url.search = ''
+        url = url.toString();
 
         if (!url)
             return res.send();
