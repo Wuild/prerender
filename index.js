@@ -1,6 +1,8 @@
 import Prerenderer from "puppeteer-prerender";
 import {Cache} from "file-system-cache";
 import express from "express";
+import https from "https";
+import fs from "node:fs";
 
 const app = express();
 
@@ -16,6 +18,8 @@ import configDotenv from "dotenv";
 configDotenv.config()
 
 const HTTP_PORT = process.env.HTTP_PORT || 3000;
+const SSL_CERT = process.env.SSL_CERT;
+const SSL_KEY = process.env.SSL_KEY;
 
 const log = function () {
     console.log.apply(console.log, [new Date().toISOString()].concat(Array.prototype.slice.call(arguments, 0)));
@@ -25,8 +29,7 @@ async function fetchPage(url) {
     const prerender = new Prerenderer()
 
     const data = cache.getSync(url);
-    if (data)
-        return {status: data.status, html: data.html};
+    if (data) return {status: data.status, html: data.html};
 
     try {
         const {status, redirect, meta, openGraph, links, html, staticHTML} = await prerender.render(url)
@@ -62,7 +65,12 @@ async function fetchPage(url) {
         }
     })
 
-    app.listen(HTTP_PORT, () => {
+    const privateKey = fs.readFileSync(SSL_KEY);
+    const certificate = fs.readFileSync(SSL_CERT);
+
+    https.createServer({
+        key: privateKey, cert: certificate
+    }, app).listen(HTTP_PORT, () => {
         console.log(`Example app listening on port ${HTTP_PORT}`)
-    })
+    });
 })();
