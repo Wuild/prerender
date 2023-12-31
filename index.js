@@ -91,6 +91,8 @@ async function fetchPage(url) {
         if (!url)
             return res.send();
 
+        log('request', url);
+
         let page = await fetchPage(url)
         if (page) {
             res.status(page.status)
