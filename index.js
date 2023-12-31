@@ -101,7 +101,7 @@ async function fetchPage(url) {
         if (!url)
             return res.send();
 
-        log('request', url);
+        log('request', url, req.headers['user-agent']);
 
         let page = await fetchPage(url)
         if (page) {
