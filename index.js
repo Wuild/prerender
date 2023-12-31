@@ -11,7 +11,9 @@ const cache = new Cache({
     ttl: process.env.CACHE_TTL || 3600               // (optional) A time-to-live (in secs) on how long an item remains cached.
 });
 
-require('dotenv').config()
+import configDotenv from "dotenv";
+
+configDotenv.config()
 
 const HTTP_PORT = process.env.HTTP_PORT || 3000;
 
