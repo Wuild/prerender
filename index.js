@@ -87,6 +87,10 @@ async function fetchPage(url) {
     app.get(/\/(.*)$/, async (req, res) => {
         let startDate = new Date();
         let url = req.params[0];
+
+        if (!url)
+            return res.send();
+
         let page = await fetchPage(url)
         if (page) {
             res.status(page.status)
