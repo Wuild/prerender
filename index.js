@@ -63,7 +63,9 @@ const log = function () {
  * value indicating whether the fetching was successful or not.
  */
 async function fetchPage(url) {
-    const prerender = new Prerenderer()
+    const prerender = new Prerenderer({
+        debug: true
+    })
 
     const data = cache.getSync(url);
     if (data) return {status: data.status, html: data.html};
