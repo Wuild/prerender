@@ -64,7 +64,11 @@ const log = function () {
  */
 async function fetchPage(url) {
     const prerender = new Prerenderer({
-        debug: true
+        debug: true,
+        timeout: 10000,
+        puppeteerLaunchOptions: {
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        }
     })
 
     const data = cache.getSync(url);
