@@ -94,8 +94,10 @@ async function fetchPage(url) {
             let url = req.params[0];
             url = new URL(url)
             url.hash = ''
-            url.search = ''
+            url.search = 'cached=true'
             url = url.toString();
+
+            console.log(url);
 
             if (!url) return res.send();
 
