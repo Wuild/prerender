@@ -64,9 +64,7 @@ const log = function () {
  */
 async function fetchPage(url) {
     const prerender = new Prerenderer({
-        debug: process.env.DEBUG,
-        timeout: 10000,
-        puppeteerLaunchOptions: {
+        debug: process.env.DEBUG, timeout: 10000, puppeteerLaunchOptions: {
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         }
     })
@@ -92,29 +90,32 @@ async function fetchPage(url) {
 (async () => {
     app.get(/\/(.*)$/, async (req, res) => {
         let startDate = new Date();
-        let url = req.params[0];
-        url = new URL(url)
-        url.hash = ''
-        url.search = ''
-        url = url.toString();
+        try {
+            let url = req.params[0];
+            url = new URL(url)
+            url.hash = ''
+            url.search = ''
+            url = url.toString();
 
-        if (!url)
-            return res.send();
+            if (!url) return res.send();
 
-        log('request', url, req.headers['user-agent']);
+            log('request', url, req.headers['user-agent']);
 
-        let page = await fetchPage(url)
-        if (page) {
-            res.status(page.status)
-            // res.headers = page.headers;
-            res.send(page.html)
+            let page = await fetchPage(url)
+            if (page) {
+                res.status(page.status)
+                // res.headers = page.headers;
+                res.send(page.html)
 
-            let ms = new Date().getTime() - startDate.getTime();
-            log('got', page.status, 'in', ms + 'ms', 'for', url);
+                let ms = new Date().getTime() - startDate.getTime();
+                log('got', page.status, 'in', ms + 'ms', 'for', url);
 
-        } else {
-            res.status(404);
-            res.send();
+            } else {
+                res.status(404);
+                res.send();
+            }
+        } catch (e) {
+            log(e);
         }
     })
 
