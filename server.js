@@ -3,7 +3,7 @@ import redis from 'redis';
 import express from "express";
 import winston from 'winston';
 import dotenv from 'dotenv';
-import { promisify } from 'util';
+import {promisify} from 'util';
 
 dotenv.config();
 
@@ -57,18 +57,21 @@ app.get('/*', async (req, res) => {
 
     // Ensure the URL is valid and has a protocol
     try {
-        new URL(targetUrl); // This will throw if the URL is invalid
+        // Parse the target URL
+        const urlObj = new URL(targetUrl);
+        // Remove the _escaped_fragment_ parameter
+        urlObj.searchParams.delete('_escaped_fragment_');
+        // Update the target URL
+        targetUrl = urlObj.toString();
     } catch (err) {
-        console.error('Invalid URL provided.');
+        logger.error('Invalid URL provided.');
         return res.status(400).send('Invalid URL');
     }
+
 
     logger.info(`Prerendering URL: ${targetUrl}`);
 
     const cacheKey = `prerender:${targetUrl}`;
-
-    // Define a helper function to get cached content
-    const getAsync = promisify(redisClient.get).bind(redisClient);
 
     const getCachedContent = async (key) => {
         return await redisClient.get(key)
@@ -93,7 +96,7 @@ app.get('/*', async (req, res) => {
         const browser = await puppeteer.launch({headless: true});
         const page = await browser.newPage();
 
-        await page.goto(targetUrl, { waitUntil: 'networkidle2' });
+        await page.goto(targetUrl, {waitUntil: 'networkidle2'});
 
         const content = await page.content();
         await browser.close();
