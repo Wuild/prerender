@@ -93,10 +93,32 @@ app.get('/*', async (req, res) => {
     }
 
     try {
-        const browser = await puppeteer.launch({headless: true});
+        const browser = await puppeteer.launch({ headless: true });
         const page = await browser.newPage();
 
-        await page.goto(targetUrl, {waitUntil: 'networkidle2'});
+        // Enable request interception
+        await page.setRequestInterception(true);
+
+        page.on('request', request => {
+            if (['image', 'stylesheet', 'font'].includes(request.resourceType())) {
+                request.abort();
+            } else {
+                request.continue();
+            }
+        });
+
+        page.on('response', async response => {
+            if ([301, 302, 303, 307, 308].includes(response.status())) {
+                const redirectionUrl = response.headers().location;
+                if (redirectionUrl) {
+                    logger.info(`Redirection detected: ${targetUrl} -> ${redirectionUrl}`);
+                    targetUrl = redirectionUrl;  // Update target URL to the redirection URL
+                    await page.goto(targetUrl, { waitUntil: 'networkidle0' });
+                }
+            }
+        });
+
+        await page.goto(targetUrl, { waitUntil: 'networkidle0' });
 
         const content = await page.content();
         await browser.close();
