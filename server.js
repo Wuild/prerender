@@ -22,8 +22,6 @@ const logger = winston.createLogger({
 
 const app = express();
 
-const USE_REDIS = process.env.REDIS_ENABLED !== 'false'; // default to true, set to 'false' to skip Redis
-
 let redisAvailable = false;
 
 // Set up Redis client
@@ -74,44 +72,24 @@ app.get('/*', async (req, res) => {
 
     // Define a helper function to get cached content
     const getCachedContent = async (key) => {
-        if (USE_REDIS && redisAvailable) {
-            return new Promise((resolve) => {
-                redisClient.get(key, (err, reply) => {
-                    if (err || !reply) {
-                        resolve(null);
-                    } else {
-                        resolve(reply);
-                    }
-                });
+        return new Promise((resolve) => {
+            redisClient.get(key, (err, reply) => {
+                if (err || !reply) {
+                    resolve(null);
+                } else {
+                    resolve(reply);
+                }
             });
-        } else {
-            return new Promise((resolve) => {
-                memcachedClient.get(key, (err, data) => {
-                    if (err || !data) {
-                        resolve(null);
-                    } else {
-                        resolve(data.toString());
-                    }
-                });
-            });
-        }
+        });
     };
 
     // Define a helper function to set cached content
     const setCachedContent = (key, value) => {
-        if (USE_REDIS && redisAvailable) {
-            redisClient.set(key, value, 'EX', process.env.CACHE_TTL, (err) => {
-                if (err) {
-                    logger.error('Redis set error:', err);
-                }
-            });
-        } else {
-            memcachedClient.set(key, value, {expires: process.env.CACHE_TTL}, (err) => {
-                if (err) {
-                    logger.error('Memcached set error:', err);
-                }
-            });
-        }
+        redisClient.set(key, value, 'EX', process.env.CACHE_TTL, (err) => {
+            if (err) {
+                logger.error('Redis set error:', err);
+            }
+        });
     };
 
     const cachedContent = await getCachedContent(cacheKey);
