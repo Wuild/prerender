@@ -3,6 +3,7 @@ import redis from 'redis';
 import express from "express";
 import winston from 'winston';
 import dotenv from 'dotenv';
+import { promisify } from 'util';
 
 dotenv.config();
 
@@ -67,19 +68,18 @@ app.get('/*', async (req, res) => {
     const cacheKey = `prerender:${targetUrl}`;
 
     // Define a helper function to get cached content
+    const getAsync = promisify(redisClient.get).bind(redisClient);
+
     const getCachedContent = async (key) => {
-        return new Promise((resolve) => {
-            redisClient.get(key, (err, reply) => {
-                if (err || !reply) {
-                    resolve(null);
-                } else {
-                    resolve(reply);
-                }
-            });
-        });
+        try {
+            const reply = await getAsync(key);
+            return reply || null;
+        } catch (err) {
+            logger.error(`Redis get error: ${err.message}`);
+            return null;
+        }
     };
 
-    // Define a helper function to set cached content
     const setCachedContent = (key, value) => {
         redisClient.set(key, value, 'EX', process.env.CACHE_TTL, (err) => {
             if (err) {
@@ -88,12 +88,12 @@ app.get('/*', async (req, res) => {
         });
     };
 
-    // const cachedContent = await getCachedContent(cacheKey);
+    const cachedContent = await getCachedContent(cacheKey);
 
-    // if (cachedContent) {
-    //     logger.info(`Serving cached content for URL: ${targetUrl}`);
-    //     return res.send(cachedContent);
-    // }
+    if (cachedContent) {
+        logger.info(`Serving cached content for URL: ${targetUrl}`);
+        return res.send(cachedContent);
+    }
 
     try {
         const browser = await puppeteer.launch({headless: true});
