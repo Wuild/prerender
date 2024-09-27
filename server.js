@@ -88,12 +88,12 @@ app.get('/*', async (req, res) => {
         });
     };
 
-    const cachedContent = await getCachedContent(cacheKey);
+    // const cachedContent = await getCachedContent(cacheKey);
 
-    if (cachedContent) {
-        logger.info(`Serving cached content for URL: ${targetUrl}`);
-        return res.send(cachedContent);
-    }
+    // if (cachedContent) {
+    //     logger.info(`Serving cached content for URL: ${targetUrl}`);
+    //     return res.send(cachedContent);
+    // }
 
     try {
         const browser = await puppeteer.launch({headless: true});
