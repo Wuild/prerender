@@ -71,13 +71,7 @@ app.get('/*', async (req, res) => {
     const getAsync = promisify(redisClient.get).bind(redisClient);
 
     const getCachedContent = async (key) => {
-        try {
-            const reply = await getAsync(key);
-            return reply || null;
-        } catch (err) {
-            logger.error(`Redis get error: ${err.message}`);
-            return null;
-        }
+        return await redisClient.get(key)
     };
 
     const setCachedContent = (key, value) => {
@@ -99,7 +93,7 @@ app.get('/*', async (req, res) => {
         const browser = await puppeteer.launch({headless: true});
         const page = await browser.newPage();
 
-        await page.goto(targetUrl);
+        await page.goto(targetUrl, { waitUntil: 'networkidle2' });
 
         const content = await page.content();
         await browser.close();
