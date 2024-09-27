@@ -105,7 +105,7 @@ app.get('/*', async (req, res) => {
         await browser.close();
 
         // Cache the rendered content
-        setCachedContent(cacheKey, content);
+        // setCachedContent(cacheKey, content);
 
         logger.info(`Successfully prerendered URL: ${targetUrl}`);
         res.send(content);
