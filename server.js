@@ -119,6 +119,9 @@ app.get('/*', async (req, res) => {
     }
 });
 
-app.listen(3000, () => {
-    console.log("Listening on 3000...");
-});
+redisClient.connect().then(() => {
+    app.listen(3000, () => {
+        console.log("Listening on 3000...");
+    });
+})
+
