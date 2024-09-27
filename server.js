@@ -99,7 +99,7 @@ app.get('/*', async (req, res) => {
         const browser = await puppeteer.launch({headless: true});
         const page = await browser.newPage();
 
-        await page.goto(targetUrl, {waitUntil: 'networkidle0'});
+        await page.goto(targetUrl);
 
         const content = await page.content();
         await browser.close();
