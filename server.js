@@ -1,6 +1,5 @@
 import puppeteer from "puppeteer";
 import redis from 'redis';
-import memjs from 'memjs';
 import express from "express";
 import winston from 'winston';
 import dotenv from 'dotenv';
@@ -42,9 +41,6 @@ redisClient.on('connect', () => {
     logger.info('Connected to Redis.');
     redisAvailable = true;
 });
-
-// Set up Memcached client (always available as fallback)
-const memcachedClient = memjs.Client.create();
 
 app.get('/', (req, res) => {
     res.send('Prerender Service');
